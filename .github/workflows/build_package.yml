@@ -2,9 +2,8 @@ name: Build and Package & Release
 
 on:
     push:
-        branches: [ "main" ]
-    release:
-        types: [created]
+        tags:
+            - 'v*.*.*'
     workflow_dispatch:
 
 jobs:
@@ -25,7 +24,8 @@ jobs:
                       path_sep: ':'
 
         runs-on: ${{ matrix.os }}
-
+        permissions:
+            contents: write
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
@@ -76,8 +76,10 @@ jobs:
                   name: ${{ matrix.zip_name }}
                   path: ${{ matrix.zip_name }}
 
-            - name: Upload to Release
-              if: github.event_name == 'release'
+            - name: Create Release and Upload Assets
               uses: softprops/action-gh-release@v2
               with:
-                  files: ${{ matrix.zip_name }}
+                  name: Release ${{ github.ref_name }}
+                  generate_release_notes: true
+                  files: |
+                      ${{ matrix.zip_name }}
