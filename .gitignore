@@ -1,0 +1,10 @@
+/build
+/dist
+/Include
+/Lib
+/Scripts
+/share
+/.vscode
+/.idea
+pyvenv.cfg
+icourses.spec

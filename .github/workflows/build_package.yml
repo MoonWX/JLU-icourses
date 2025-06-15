@@ -1,0 +1,73 @@
+name: Build and Package Application
+
+on:
+    push:
+        branches: [ "main" ]
+    release:
+        types: [created]
+    workflow_dispatch:
+
+jobs:
+    build:
+        strategy:
+            matrix:
+                include:
+                    - os: windows-latest
+                      python-version: '3.13.4'
+                      asset_name: icourses.exe
+                      zip_name: JLU_icourses_windows-x64.zip
+                      path_sep: ';'
+
+                    - os: ubuntu-latest
+                      python-version: '3.13.4'
+                      asset_name: icourses
+                      zip_name: JLU_icourses_linux-x64.zip
+                      path_sep: ':'
+
+        runs-on: ${{ matrix.os }}
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: ${{ matrix.python-version }}
+                  cache: 'pip'
+
+            - name: Install dependencies
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install -r requirements.txt
+                  pip install pyinstaller
+
+            - name: Get ddddocr path
+              id: get_path
+              run: echo "DDDDOCR_PATH=$(python -c "import os, ddddocr; print(os.path.dirname(ddddocr.__file__))")" >> $GITHUB_ENV
+              shell: bash
+
+            - name: Build with PyInstaller
+              run: |
+                  pyinstaller -F --name ${{ matrix.asset_name }} --add-data "${{ env.DDDDOCR_PATH }}${{ matrix.path_sep }}ddddocr" main.py
+
+            - name: Package to ZIP
+              run: |
+                  mkdir release_package
+                  cp dist/${{ matrix.asset_name }} release_package/
+                  cp README.md release_package/
+                  cd release_package
+                  zip -r ../${{ matrix.zip_name }} .
+              shell: bash
+
+            - name: Upload Artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ${{ matrix.zip_name }}
+                  path: ${{ matrix.zip_name }}
+
+            - name: Upload to Release
+              if: github.event_name == 'release'
+              uses: softprops/action-gh-release@v2
+              with:
+                  files: ${{ matrix.zip_name }}
