@@ -325,7 +325,7 @@ def main():
     # 3. 优先级合并：命令行 > 配置文件
     if cli_args_provided:
         print("检测到命令行参数，将优先使用命令行参数进行本次运行。")
-        sleep(1)
+        time.sleep(1)
         username = sys.argv[1]
         password = sys.argv[2]
         batch_idx_str = sys.argv[3]
@@ -365,6 +365,8 @@ def main():
         print("  - batch_index: 0 代表第一个批次，1 代表第二个，以此类推。")
         print("  - loop: true 代表持续循环抢课（防止数据回滚），false 代表抢完一轮后停止。")
         print("="*60)
+        print("程序将在10秒后自动退出，请检查配置后重新运行。")
+        time.sleep(10)
         sys.exit(1)
 
     selector = None
