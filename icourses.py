@@ -17,7 +17,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 WORKER_THREAD_COUNT = 8
 RETRY_DELAY = 0.5
 BASE_URL = "https://icourses.jlu.edu.cn/xsxk"
-MAX_RETRIES = -1 # -1表示无限重试
+MAX_RETRIES = -1
 
 class TermColor:
     """终端输出颜色定义"""
@@ -155,7 +155,7 @@ class ApiClient:
         return response.json()['data']
 
     def select_course(self, clazz_type: str, clazz_id: str, secret_val: str) -> dict:
-        @retry_on_exception(max_retries=MAX_RETRIES)
+        @retry_on_exception(max_retries=0)
         def do_request():
             url = f"{BASE_URL}/sc/clazz/addxk"
             payload = {'clazzType': clazz_type, 'clazzId': clazz_id, 'secretVal': secret_val}
@@ -309,20 +309,16 @@ def load_config():
             print(f"检测到配置文件 '{CONFIG_FILE}'，正在读取...")
             return json.load(f)
     except FileNotFoundError:
-        # 配置文件不存在是正常情况，返回空字典即可
         return {}
     except (json.JSONDecodeError, TypeError):
         print(f"{TermColor.YELLOW}警告: 配置文件 '{CONFIG_FILE}' 格式错误或内容非JSON对象，已忽略。{TermColor.ENDC}")
         return {}
 
 def main():
-    # 1. 从文件加载配置
     config_from_file = load_config()
 
-    # 2. 检查是否提供了足够的命令行参数
     cli_args_provided = len(sys.argv) >= 4
 
-    # 3. 优先级合并：命令行 > 配置文件
     if cli_args_provided:
         print("检测到命令行参数，将优先使用命令行参数进行本次运行。")
         time.sleep(1)
@@ -335,15 +331,13 @@ def main():
         time.sleep(1)
         username = config_from_file.get('username')
         password = config_from_file.get('password')
-        # .get()方法可以安全地处理不存在的键
         batch_idx_str = config_from_file.get('batch_index')
         run_in_loop = config_from_file.get('loop', False)
 
-    # 4. 验证参数完整性并提供引导
     try:
         batch_idx = int(batch_idx_str) if batch_idx_str is not None else None
     except (ValueError, TypeError):
-        batch_idx = None # 如果批次索引不是有效数字，则视为无效
+        batch_idx = None
 
     if not all([username, password, batch_idx is not None]):
         print("\n" + "="*60)
@@ -428,7 +422,6 @@ def main():
         print(f"\n{TermColor.YELLOW}捕获到 Ctrl+C，正在通知所有线程停止...{TermColor.ENDC}")
         if selector:
             selector.shutdown_event.set()
-        time.sleep(1)
         print(f"程序已安全退出。{TermColor.ENDC}")
 
     finally:
