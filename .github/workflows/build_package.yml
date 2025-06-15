@@ -49,7 +49,7 @@ jobs:
 
             - name: Build with PyInstaller
               run: |
-                  pyinstaller -F --name ${{ matrix.asset_name }} --add-data "${{ env.DDDDOCR_PATH }}${{ matrix.path_sep }}ddddocr" main.py
+                  pyinstaller -F --name ${{ matrix.asset_name }} --add-data "${{ env.DDDDOCR_PATH }}${{ matrix.path_sep }}ddddocr" icourses.py
 
             - name: Package to ZIP
               run: |
