@@ -42,6 +42,11 @@ jobs:
                   pip install -r requirements.txt
                   pip install pyinstaller
 
+            - name: Patch ddddocr for Pillow 10+
+              run: |
+                  python -c "import os, ddddocr; file_path=os.path.join(os.path.dirname(ddddocr.__file__), '__init__.py'); print('Patching file: ' + file_path); content=open(file_path, 'r', encoding='utf-8').read(); content=content.replace('Image.ANTIALIAS', 'Image.LANCZOS'); open(file_path, 'w', encoding='utf-8').write(content); print('Patch successful!')"
+              shell: bash
+
             - name: Get ddddocr path
               id: get_path
               run: echo "DDDDOCR_PATH=$(python -c "import os, ddddocr; print(os.path.dirname(ddddocr.__file__))")" >> $GITHUB_ENV
