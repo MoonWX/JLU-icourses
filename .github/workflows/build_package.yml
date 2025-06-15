@@ -51,7 +51,8 @@ jobs:
               run: |
                   pyinstaller -F --name ${{ matrix.asset_name }} --add-data "${{ env.DDDDOCR_PATH }}${{ matrix.path_sep }}ddddocr" icourses.py
 
-            - name: Package to ZIP
+            - name: Package to ZIP (Linux)
+              if: runner.os == 'Linux'
               run: |
                   mkdir release_package
                   cp dist/${{ matrix.asset_name }} release_package/
@@ -59,6 +60,15 @@ jobs:
                   cd release_package
                   zip -r ../${{ matrix.zip_name }} .
               shell: bash
+
+            - name: Package to ZIP (Windows)
+              if: runner.os == 'Windows'
+              run: |
+                  mkdir release_package
+                  Copy-Item -Path "dist/${{ matrix.asset_name }}" -Destination "release_package/"
+                  Copy-Item -Path "README.md" -Destination "release_package/"
+                  Compress-Archive -Path "release_package/*" -DestinationPath "${{ matrix.zip_name }}"
+              shell: pwsh
 
             - name: Upload Artifact
               uses: actions/upload-artifact@v4
