@@ -1,4 +1,4 @@
-name: Build and Package Application
+name: Build and Package & Release
 
 on:
     push:
